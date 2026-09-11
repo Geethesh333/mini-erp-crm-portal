@@ -1,9 +1,11 @@
 // Comprehensive End-to-End Test Suite for Mini ERP + CRM Portal
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = process.env.API_BASE || 'http://localhost:5000/api';
+const HEALTH_URL = API_BASE.replace(/\/api$/, '') + '/health';
 
 async function testSuite() {
   console.log('🧪 Starting Mini ERP + CRM Automated Verification Test Suite...\n');
+  console.log(`📡 Target API: ${API_BASE}\n`);
   let passed = 0;
   let failed = 0;
 
@@ -19,7 +21,7 @@ async function testSuite() {
 
   // 1. Health Check
   console.log('--- 1. Testing System Health ---');
-  const healthRes = await fetch('http://localhost:5000/health').then(r => r.json());
+  const healthRes = await fetch(HEALTH_URL).then(r => r.json());
   assert(healthRes.status === 'ok', 'Server health check returns ok');
 
   // 2. Auth Tests for All 4 Roles
@@ -241,6 +243,26 @@ async function testSuite() {
   assert(pdfRes.status === 200, 'PDF generation endpoint returned HTTP 200');
   const contentType = pdfRes.headers.get('content-type');
   assert(contentType?.includes('application/pdf'), `Returned correct Content-Type: ${contentType}`);
+
+  // 6.1 Product Image Upload Test (Bonus Feature)
+  console.log('\n--- 6.1 Testing Product Image Upload (Bonus Feature) ---');
+  const dummyBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const imgRes = await fetch(`${API_BASE}/products/${testProdId}/image`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${tokens.ADMIN}`,
+    },
+    body: JSON.stringify({
+      imageBase64: dummyBase64,
+      fileName: 'test-product.png',
+      contentType: 'image/png',
+    }),
+  });
+  const imgJson = await imgRes.json();
+  assert(imgRes.status === 200, 'Product image upload endpoint returned HTTP 200');
+  assert(imgJson.success === true, `Product image stored via provider: ${imgJson.provider}`);
+  assert(!!imgJson.imageUrl, `Product imageUrl saved: ${imgJson.imageUrl}`);
 
   // 7. Dashboard Metrics
   console.log('\n--- 7. Testing Dashboard Metrics ---');

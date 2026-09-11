@@ -197,3 +197,57 @@ The application is architected for deployment across modern free cloud hosting t
    - `SALES`: Restricted to Customer CRM management and Sales Challan creation.
    - `WAREHOUSE`: Controls physical stock adjustments, bin locations, and inventory audit logs.
    - `ACCOUNTS`: Focused on financial auditing, invoice inspection, and PDF invoice downloads.
+
+---
+
+## 6. Bonus Features Implementation
+
+All four bonus features requested in the case study are fully implemented:
+
+### 1. Docker Setup
+- **Multi-Container Stack:** Configured in `docker-compose.yml` orchestrating 3 services:
+  - `postgres`: PostgreSQL 16 server with persistent data volume `postgres_data`.
+  - `backend`: Node.js container with multi-stage build, automated Prisma schema sync, and API hosting.
+  - `frontend`: Vite React build served via Nginx with HTML5 history API fallback.
+- **Dockerfiles:** `backend/Dockerfile` and `frontend/Dockerfile`.
+- **Run Command:** `docker-compose up --build`
+
+### 2. GitHub Actions Deployment / CI Pipeline
+- **Workflow File:** `.github/workflows/ci.yml`
+- **Automation:** Triggered automatically on `push` and `pull_request` to the `main` branch.
+- **Checks Executed:**
+  1. Node.js 20 environment initialization.
+  2. Backend dependency installation and Prisma client generation.
+  3. TypeScript compilation (`tsc`).
+  4. Frontend dependency installation and production Vite build.
+  5. Automated end-to-end integration test run ensuring all 33 tests pass before merging.
+
+### 3. Export Invoice as PDF
+- **Backend Service:** Implemented in `backend/src/controllers/challanController.ts` using `pdfkit`.
+- **Endpoint:** `GET /api/challans/:id/pdf`
+- **Features:** Generates a printable A4 invoice/dispatch challan with business header, sequential challan number, recipient customer information, itemized table of products (SKU, description, quantity, unit price, total), tax/subtotal calculation, and authorized signature section.
+- **UI Integration:** Accessible directly via the "Export PDF" button on challan records in the frontend.
+
+### 4. Upload Product Image to AWS S3
+- **Backend Service:** Implemented in `backend/src/services/s3Service.ts` with the official `@aws-sdk/client-s3`.
+- **Endpoint:** `POST /api/products/:id/image` (restricted to `ADMIN` and `WAREHOUSE` roles).
+- **Dual-Mode Cloud/Local Handling:**
+  - When AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`, `AWS_REGION`) are present, images stream directly to an AWS S3 bucket.
+  - When running locally without paid AWS credentials, it safely stores images in `/uploads/` and serves them via static Express routing, ensuring zero crashes.
+- **Schema Support:** `imageUrl String?` attribute added to `Product` model in `schema.prisma`.
+
+---
+
+## 7. Submission Checklist
+
+- [x] **GitHub Repository:** `https://github.com/Geethesh333/mini-erp-crm-portal.git`
+- [x] **Live Backend API URL:** `https://mini-erp-crm-portal-832a.onrender.com/api`
+- [x] **Live Frontend URL:** User Vercel deployment connected to the live backend
+- [x] **Test Login Credentials:**
+  - Admin: `admin@minierp.com` / `password123`
+  - Sales: `sales@minierp.com` / `password123`
+  - Warehouse: `warehouse@minierp.com` / `password123`
+  - Accounts: `accounts@minierp.com` / `password123`
+- [x] **Postman Collection:** `postman_collection.json` committed in repository root
+- [x] **5 Mandatory Documentation Points:** Server setup, Environment variables, Local run, Deployment, Assumptions
+- [x] **4 Bonus Points:** Docker, GitHub Actions, PDF Export, AWS S3 image upload

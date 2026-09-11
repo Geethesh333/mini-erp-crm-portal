@@ -16,11 +16,11 @@ This application addresses the daily operational needs of wholesale and distribu
    - Captures immutable **product snapshot data** (pricing, name, SKU at time of dispatch).
    - **Atomic Stock Validation:** Prevents negative inventory. Confirmed challans deduct stock atomically within database transactions; insufficient stock returns descriptive `HTTP 400` errors.
    - **Draft vs. Confirmed** lifecycle (Drafts reserve quotes without reducing physical warehouse inventory).
-5. **Bonus Features Included:**
-   - 📄 **Export Invoice/Challan as PDF** (A4 formatted with company branding, tax stamps, and itemized tables).
-   - 🐳 **Docker & Docker Compose** multi-container setup.
-   - 📮 **Postman Collection** (`postman_collection.json`) with all endpoints and example payloads.
-   - ⚡ **1-Click Quick Login** helper in the frontend for instantaneous evaluation across all 4 roles.
+5. **🌟 Bonus Features (All 4 Fully Implemented & Included!):**
+   - 🐳 **Docker Setup:** `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `.dockerignore` multi-stage containerization.
+   - 🚀 **GitHub Actions CI/CD:** `.github/workflows/ci.yml` automated continuous integration pipeline running lint, build, and automated test suites on push.
+   - 📄 **Export Invoice as PDF:** `GET /api/challans/:id/pdf` powered by `pdfkit` generating printable, branded A4 dispatch invoices with itemized tables and tax stamps.
+   - ☁️ **Upload Product Image to AWS S3:** `POST /api/products/:id/image` with `@aws-sdk/client-s3` streaming to AWS S3 buckets (with offline local storage fallback) and `imageUrl` schema support.
 
 ---
 
@@ -237,6 +237,46 @@ To switch Prisma from SQLite to PostgreSQL for production:
    - Stock decrements and movement log creation are executed inside an atomic database transaction (`prisma.$transaction`).
 3. **Draft Lifecycle:** Draft challans can be prepared and negotiated without locking or deducting physical warehouse stock until confirmed.
 4. **Order Cancellation:** If a confirmed challan is cancelled, the inventory items are automatically restocked with an inward movement audit log.
+
+---
+
+## 🌟 Bonus Features Implementation Guide
+
+All 4 bonus features described in the assignment specification are fully implemented and integrated:
+
+### 1. 🐳 Docker Setup
+- **Root Docker Compose:** `docker-compose.yml` configures a complete multi-container stack with 3 orchestrated services:
+  - `postgres`: PostgreSQL 16 database with persistent volume mapping and health check.
+  - `backend`: Node.js / Express backend with Prisma migration and auto-seed execution on launch.
+  - `frontend`: React SPA built with Vite and served via high-performance Nginx with HTML5 pushState routing.
+- **Dockerfiles:**
+  - `backend/Dockerfile`: Multi-stage build with dependency pruning and Prisma binary generation.
+  - `frontend/Dockerfile`: Multi-stage build compiling TypeScript/Vite into optimized static assets and serving via Nginx.
+- **Run command:** `docker-compose up --build`
+
+### 2. 🚀 GitHub Actions Deployment & CI Pipeline
+- **Workflow File:** `.github/workflows/ci.yml`
+- **Triggers:** Automatically executes on every `push` and `pull_request` targeting the `main` branch.
+- **Pipeline Jobs:**
+  - Setup Node.js 20 LTS runtime.
+  - Backend dependencies installation & Prisma client generation.
+  - TypeScript strict compilation (`tsc`).
+  - Frontend dependencies installation & production Vite build.
+  - Automated integration test execution ensuring zero regressions before deployment.
+
+### 3. 📄 Export Invoice as PDF
+- **Backend Service:** Powered by `pdfkit` in `backend/src/controllers/challanController.ts` (`exportChallanPDF`).
+- **Endpoint:** `GET /api/challans/:id/pdf`
+- **Features:** Generates official A4 dispatch invoices with company header, challan sequential number, customer address & GSTIN, itemized table of dispatched products, subtotal & tax breakdown, and authorized signature section.
+- **Frontend Integration:** Directly accessible from the Sales Challans page with an "Export PDF" button on every challan card and modal.
+
+### 4. ☁️ Upload Product Image to AWS S3
+- **Backend Service:** Implemented in `backend/src/services/s3Service.ts` using the official AWS SDK (`@aws-sdk/client-s3`).
+- **Endpoint:** `POST /api/products/:id/image` (restricted to `ADMIN` and `WAREHOUSE` roles).
+- **Intelligent Dual-Mode Storage:**
+  - If AWS S3 credentials are provided in `.env` (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`, `AWS_REGION`), images are directly streamed and hosted on Amazon S3.
+  - If running without paid cloud credentials or in an offline local environment, it safely falls back to local static storage in `/uploads/` and serves them via `express.static`, ensuring zero crashes and 100% functionality.
+- **Database Schema:** `Product` model includes `imageUrl String?` to store the permanent public asset URL.
 
 ---
 

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../prisma';
+import { uploadProductImage } from '../services/s3Service';
 
 const productSchema = z.object({
   name: z.string().min(2, 'Product name is required'),
@@ -287,6 +288,48 @@ export const getStockMovements = async (req: Request, res: Response, next: NextF
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadProductImageHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { imageBase64, fileName, contentType } = req.body;
+
+    if (!imageBase64) {
+      res.status(400).json({ success: false, message: 'Image base64 data is required.' });
+      return;
+    }
+
+    const product = await prisma.product.findUnique({ where: { id } });
+    if (!product) {
+      res.status(404).json({ success: false, message: 'Product not found.' });
+      return;
+    }
+
+    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(cleanBase64, 'base64');
+
+    const uploadResult = await uploadProductImage(
+      fileName || `${product.sku}.jpg`,
+      buffer,
+      contentType || 'image/jpeg'
+    );
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: { imageUrl: uploadResult.url },
+    });
+
+    res.json({
+      success: true,
+      message: `Image successfully uploaded via ${uploadResult.provider}`,
+      imageUrl: uploadResult.url,
+      provider: uploadResult.provider,
+      product: updated,
     });
   } catch (error) {
     next(error);

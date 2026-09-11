@@ -91,6 +91,7 @@ router.get('/', (req, res) => {
         'POST /api/products',
         'PUT /api/products/:id',
         'POST /api/products/:id/adjust-stock',
+        'POST /api/products/:id/image',
         'GET /api/products/movements',
       ],
       challans: [
@@ -129,6 +130,7 @@ router.get('/products/:id', authenticateJWT, productCtrl.getProductById);
 router.post('/products', authenticateJWT, authorizeRoles('WAREHOUSE', 'ADMIN'), productCtrl.createProduct);
 router.put('/products/:id', authenticateJWT, authorizeRoles('WAREHOUSE', 'ADMIN'), productCtrl.updateProduct);
 router.post('/products/:id/adjust-stock', authenticateJWT, authorizeRoles('WAREHOUSE', 'ADMIN'), productCtrl.adjustStock);
+router.post('/products/:id/image', authenticateJWT, authorizeRoles('WAREHOUSE', 'ADMIN'), productCtrl.uploadProductImageHandler);
 
 // ==================== SALES CHALLAN MODULE ====================
 // Everyone can view challans and download PDF. Sales, Warehouse and Admin can create/confirm.
