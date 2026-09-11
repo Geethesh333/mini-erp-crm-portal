@@ -5,7 +5,7 @@
 
 ---
 
-## 🎯 Project Overview & Key Highlights
+## Project Overview & Key Highlights
 
 This application addresses the daily operational needs of wholesale and distribution businesses:
 1. **Multi-Role Authentication (RBAC):** Dedicated permissions and views for **Admin**, **Sales**, **Warehouse**, and **Accounts** teams.
@@ -16,15 +16,15 @@ This application addresses the daily operational needs of wholesale and distribu
    - Captures immutable **product snapshot data** (pricing, name, SKU at time of dispatch).
    - **Atomic Stock Validation:** Prevents negative inventory. Confirmed challans deduct stock atomically within database transactions; insufficient stock returns descriptive `HTTP 400` errors.
    - **Draft vs. Confirmed** lifecycle (Drafts reserve quotes without reducing physical warehouse inventory).
-5. **🌟 Bonus Features (All 4 Fully Implemented & Included!):**
-   - 🐳 **Docker Setup:** `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `.dockerignore` multi-stage containerization.
-   - 🚀 **GitHub Actions CI/CD:** `.github/workflows/ci.yml` automated continuous integration pipeline running lint, build, and automated test suites on push.
-   - 📄 **Export Invoice as PDF:** `GET /api/challans/:id/pdf` powered by `pdfkit` generating printable, branded A4 dispatch invoices with itemized tables and tax stamps.
-   - ☁️ **Upload Product Image to AWS S3:** `POST /api/products/:id/image` with `@aws-sdk/client-s3` streaming to AWS S3 buckets (with offline local storage fallback) and `imageUrl` schema support.
+5. **Bonus Features (All 4 Fully Implemented & Included):**
+   - **Docker Setup:** `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `.dockerignore` multi-stage containerization.
+   - **GitHub Actions CI/CD:** `.github/workflows/ci.yml` automated continuous integration pipeline running lint, build, and automated test suites on push.
+   - **Export Invoice as PDF:** `GET /api/challans/:id/pdf` powered by `pdfkit` generating printable, branded A4 dispatch invoices with itemized tables and tax stamps.
+   - **Upload Product Image to AWS S3:** `POST /api/products/:id/image` with `@aws-sdk/client-s3` streaming to AWS S3 buckets (with offline local storage fallback) and `imageUrl` schema support.
 
 ---
 
-## 🔑 Pre-Seeded Test Credentials
+## Pre-Seeded Test Credentials
 
 | Role | Email | Password | Access Scope |
 | :--- | :--- | :--- | :--- |
@@ -37,7 +37,7 @@ This application addresses the daily operational needs of wholesale and distribu
 
 ---
 
-## 📑 Required Case Study Documentation
+## Required Case Study Documentation
 
 ### 1. How the Server Was Set Up
 - **Runtime & Language:** Built with **Node.js (v20 LTS)** and **TypeScript 5.6** in strict mode.
@@ -109,7 +109,7 @@ This application addresses the daily operational needs of wholesale and distribu
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Backend:**
   - Runtime: Node.js (v20+) with TypeScript
@@ -131,7 +131,7 @@ This application addresses the daily operational needs of wholesale and distribu
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## Quick Start (Local Setup)
 
 ### Prerequisites
 - Node.js (v18 or higher)
@@ -163,7 +163,7 @@ Open **http://localhost:5173** in your browser.
 
 ---
 
-## 🐳 Running with Docker
+## Running with Docker
 
 You can run the entire stack with a single command:
 ```bash
@@ -174,7 +174,7 @@ docker-compose up --build
 
 ---
 
-## ☁️ Deployment Instructions (Free Hosting Platforms)
+## Deployment Instructions (Free Hosting Platforms)
 
 ### Option A: Frontend on Vercel / Netlify
 1. Connect your GitHub repository to Vercel/Netlify.
@@ -203,7 +203,7 @@ To switch Prisma from SQLite to PostgreSQL for production:
 
 ---
 
-## 🏛 System Architecture & Business Logic
+## System Architecture & Business Logic
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -240,11 +240,11 @@ To switch Prisma from SQLite to PostgreSQL for production:
 
 ---
 
-## 🌟 Bonus Features Implementation Guide
+## Bonus Features Implementation Guide
 
 All 4 bonus features described in the assignment specification are fully implemented and integrated:
 
-### 1. 🐳 Docker Setup
+### 1. Docker Setup
 - **Root Docker Compose:** `docker-compose.yml` configures a complete multi-container stack with 3 orchestrated services:
   - `postgres`: PostgreSQL 16 database with persistent volume mapping and health check.
   - `backend`: Node.js / Express backend with Prisma migration and auto-seed execution on launch.
@@ -254,7 +254,7 @@ All 4 bonus features described in the assignment specification are fully impleme
   - `frontend/Dockerfile`: Multi-stage build compiling TypeScript/Vite into optimized static assets and serving via Nginx.
 - **Run command:** `docker-compose up --build`
 
-### 2. 🚀 GitHub Actions Deployment & CI Pipeline
+### 2. GitHub Actions Deployment & CI Pipeline
 - **Workflow File:** `.github/workflows/ci.yml`
 - **Triggers:** Automatically executes on every `push` and `pull_request` targeting the `main` branch.
 - **Pipeline Jobs:**
@@ -264,13 +264,13 @@ All 4 bonus features described in the assignment specification are fully impleme
   - Frontend dependencies installation & production Vite build.
   - Automated integration test execution ensuring zero regressions before deployment.
 
-### 3. 📄 Export Invoice as PDF
+### 3. Export Invoice as PDF
 - **Backend Service:** Powered by `pdfkit` in `backend/src/controllers/challanController.ts` (`exportChallanPDF`).
 - **Endpoint:** `GET /api/challans/:id/pdf`
 - **Features:** Generates official A4 dispatch invoices with company header, challan sequential number, customer address & GSTIN, itemized table of dispatched products, subtotal & tax breakdown, and authorized signature section.
 - **Frontend Integration:** Directly accessible from the Sales Challans page with an "Export PDF" button on every challan card and modal.
 
-### 4. ☁️ Upload Product Image to AWS S3
+### 4. Upload Product Image to AWS S3
 - **Backend Service:** Implemented in `backend/src/services/s3Service.ts` using the official AWS SDK (`@aws-sdk/client-s3`).
 - **Endpoint:** `POST /api/products/:id/image` (restricted to `ADMIN` and `WAREHOUSE` roles).
 - **Intelligent Dual-Mode Storage:**
@@ -280,7 +280,7 @@ All 4 bonus features described in the assignment specification are fully impleme
 
 ---
 
-## 📋 REST API Endpoints Overview
+## REST API Endpoints Overview
 
 ### Authentication
 - `POST /api/auth/login` — Sign in and receive JWT token.
@@ -312,7 +312,7 @@ All 4 bonus features described in the assignment specification are fully impleme
 
 ---
 
-## 🧪 Automated Testing
+## Automated Testing
 
 An end-to-end test suite is included in `test_e2e.js`. To run all 33 tests verifying role access, customer CRM, stock decrements, zero-negative stock rules, and PDF generation:
 
@@ -324,7 +324,7 @@ node test_e2e.js
 
 ---
 
-## 📝 Assumptions & Known Design Decisions
+## Assumptions & Known Design Decisions
 1. **Currency:** Pricing is standardized in Indian Rupees (₹) suited for domestic wholesale distribution operations.
 2. **Local Database:** SQLite is configured by default so anyone downloading the project can run `npm run prisma:seed` and `npm run dev` in 10 seconds without having to install a local PostgreSQL server. For cloud deployment, switching to PostgreSQL is a 1-line configuration change in `schema.prisma`.
 3. **Sequential Numbering:** Challan numbers are auto-generated using timestamp and sequence counters (`CH-YYYYMMDD-0001`) to guarantee human-readable uniqueness across warehouse dispatch slips.
