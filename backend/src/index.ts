@@ -3,6 +3,35 @@ import cors from 'cors';
 import { config } from './config';
 import apiRouter from './routes';
 import { errorHandler } from './middleware/errorHandler';
+import { prisma } from './prisma';
+import { execSync } from 'child_process';
+
+// Auto-sync database schema and auto-seed on launch
+(async () => {
+  try {
+    console.log('🔄 Checking database schema sync...');
+    try {
+      execSync('npx prisma db push --skip-generate', { stdio: 'inherit' });
+    } catch (e: any) {
+      console.log('ℹ️ Schema push note:', e?.message || e);
+    }
+
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      console.log('🌱 Database is empty. Running auto-seed for initial roles & inventory...');
+      try {
+        execSync('npx tsx prisma/seed.ts', { stdio: 'inherit' });
+        console.log('✅ Auto-seed completed successfully!');
+      } catch (seedErr: any) {
+        console.error('Seed execution note:', seedErr?.message || seedErr);
+      }
+    } else {
+      console.log(`✅ Database ready. Found ${userCount} registered users.`);
+    }
+  } catch (err: any) {
+    console.log('ℹ️ Database startup check info:', err?.message || err);
+  }
+})();
 
 const app = express();
 
