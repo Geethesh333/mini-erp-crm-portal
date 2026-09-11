@@ -37,6 +37,78 @@ This application addresses the daily operational needs of wholesale and distribu
 
 ---
 
+## 📑 Required Case Study Documentation
+
+### 1. How the Server Was Set Up
+- **Runtime & Language:** Built with **Node.js (v20 LTS)** and **TypeScript 5.6** in strict mode.
+- **Web Framework:** **Express.js** with centralized routing, CORS handling (`cors`), JSON body parsing, and custom error middleware (`errorHandler.ts`).
+- **Database & ORM:** **Prisma ORM (v5.21)** connected to **PostgreSQL** (Neon.tech in production) and SQLite for zero-dependency local setups.
+- **Authentication & Security:** JWT (`jsonwebtoken`) with 7-day expiration, and one-way password hashing using `bcryptjs` with salt rounds = 10.
+- **Business Logic Layer:** Database transactions (`prisma.$transaction`) ensure atomicity for sales challan confirmation and stock decrements.
+- **Document Engine:** `pdfkit` dynamic streaming engine generating printable A4 dispatch challans and invoices.
+- **Containerization:** Multi-stage `Dockerfile` and `docker-compose.yml` for unified backend, database, and frontend container orchestration.
+
+### 2. How Environment Variables Are Managed
+- Environment variables are isolated from source code using `.env` files locally and secure dashboard injection in production.
+- Key variables:
+  - `PORT`: Network port for Express server (default `5000`).
+  - `DATABASE_URL`: Connection string for PostgreSQL or SQLite (`postgresql://user:pass@host/db?sslmode=require` or `file:./dev.db`).
+  - `JWT_SECRET`: Secret key used to sign and verify JSON Web Tokens.
+  - `JWT_EXPIRES_IN`: Expiration duration for auth tokens (default `7d`).
+  - `NODE_ENV`: Application environment (`development` or `production`).
+  - `VITE_API_URL`: Frontend client URL pointing to the backend API (`https://your-backend.onrender.com/api` or `http://localhost:5000/api`).
+- An audited `.env.example` template is committed to the repository for reference.
+
+### 3. How to Run the Project Locally
+- **Option A (1-Click on Windows):**
+  - Simply double-click `start_all.bat` in the project root. It will launch both the backend (port 5000) and frontend (port 5173) and open your browser automatically.
+- **Option B (Standard CLI):**
+  1. Start Backend:
+     ```bash
+     cd backend
+     npm install
+     npx prisma generate
+     npx prisma db push
+     npx tsx prisma/seed.ts
+     npm run dev
+     ```
+  2. Start Frontend:
+     ```bash
+     cd frontend
+     npm install
+     npm run dev
+     ```
+  3. Open `http://localhost:5173` in your browser.
+- **Option C (Docker Compose):**
+  ```bash
+  docker-compose up --build
+  ```
+
+### 4. How to Deploy the Project
+- **Database (Neon / Supabase):**
+  - Create a serverless PostgreSQL instance on [neon.tech](https://neon.tech) and copy the `postgresql://...` connection string.
+- **Backend (Render / Railway):**
+  - Create a Web Service connected to your repository.
+  - Root directory: `backend`
+  - Build command: `npm install && npx prisma generate && npx prisma db push && npm run build`
+  - Start command: `node dist/index.js`
+  - Set `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`.
+- **Frontend (Vercel / Netlify):**
+  - Import the repository on [vercel.com](https://vercel.com).
+  - Root directory: `frontend`
+  - Preset: `Vite`
+  - Environment variable: `VITE_API_URL=https://your-backend.onrender.com/api`
+  - Rewrites handled automatically via `frontend/vercel.json` for single-page routing.
+
+### 5. Assumptions Made
+1. **Currency Standard:** All transactions, line items, and challan totals are modeled in Indian Rupees (₹) suited for domestic wholesale trade.
+2. **Product Price Snapshots:** Wholesale prices change frequently. When a Challan is created, the unit price and item description are permanently frozen into the `ChallanItem` record to protect past financial and tax records from future catalog price edits.
+3. **Sequential Challan Numbering:** Challans follow an automated format (`CH-YYYYMMDD-XXXX`) to facilitate physical paperwork matching in the warehouse.
+4. **Draft vs. Confirmed Workflows:** Draft challans represent quotations or tentative dispatches and do not lock or deduct physical stock. Confirmation strictly decrements stock and returns HTTP 400 if stock is insufficient, preventing negative inventory.
+5. **Role Exclusivity:** Admin holds universal permissions. Sales focuses on customers and orders; Warehouse controls stock and inward receipts; Accounts audits invoices and PDF printouts.
+
+---
+
 ## 🛠 Tech Stack
 
 - **Backend:**
