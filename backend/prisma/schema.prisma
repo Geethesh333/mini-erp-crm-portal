@@ -1,0 +1,104 @@
+// Prisma schema for Mini ERP + CRM Operations Portal
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // ADMIN, SALES, WAREHOUSE, ACCOUNTS
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id           String             @id @default(cuid())
+  customerName String
+  mobileNumber String
+  email        String
+  businessName String
+  gstNumber    String?
+  customerType String             // Retail, Wholesale, Distributor
+  address      String
+  status       String             // Lead, Active, Inactive
+  followUpDate DateTime?
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  followUps    CustomerFollowUp[]
+  challans     SalesChallan[]
+}
+
+model CustomerFollowUp {
+  id           String    @id @default(cuid())
+  customerId   String
+  customer     Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  note         String
+  followUpDate DateTime?
+  createdBy    String
+  createdAt    DateTime  @default(now())
+}
+
+model Product {
+  id             String          @id @default(cuid())
+  name           String
+  sku            String          @unique
+  category       String
+  unitPrice      Float
+  currentStock   Int             @default(0)
+  minStockAlert  Int             @default(10)
+  location       String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  stockMovements StockMovement[]
+  challanItems   ChallanItem[]
+}
+
+model StockMovement {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity     Int
+  movementType String   // IN or OUT
+  reason       String
+  createdBy    String
+  createdAt    DateTime @default(now())
+}
+
+model SalesChallan {
+  id            String        @id @default(cuid())
+  challanNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  totalQuantity Int           @default(0)
+  totalAmount   Float         @default(0.0)
+  status        String        @default("Draft") // Draft, Confirmed, Cancelled
+  createdBy     String
+  createdDate   DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  notes         String?
+  items         ChallanItem[]
+}
+
+model ChallanItem {
+  id          String        @id @default(cuid())
+  challanId   String
+  challan     SalesChallan  @relation(fields: [challanId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  // Product Snapshot fields:
+  productName String
+  productSku  String
+  category    String
+  unitPrice   Float
+  quantity    Int
+  subtotal    Float
+}
